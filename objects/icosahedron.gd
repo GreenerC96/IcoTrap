@@ -20,10 +20,10 @@ const VERTEX_SNAP_SCALE := 10000.0
 		gap = clampf(value, 0.0, 0.4)
 		_rebuild()
 
-@export var albedo_color: Color = Color(0.45, 0.62, 0.92):
+@export_range(0, 12, 1) var land_pentagon_count: int = 4:
 	set(value):
-		albedo_color = value
-		_update_tile_base_colors()
+		land_pentagon_count = clampi(value, 0, 12)
+		_rebuild()
 
 @export var direction_seed: int = 1:
 	set(value):
@@ -190,6 +190,36 @@ func _link_tile_opposites(vertex_map: Dictionary) -> void:
 			tile.opposites[corner_index] = candidates[0]
 
 
+func _assign_land_pentagons(tiles: Array[Tile], count: int, seed: int) -> void:
+	if count <= 0:
+		return
+
+	var pentagons: Array[Tile] = []
+	for tile in tiles:
+		if tile.is_pentagon():
+			pentagons.append(tile)
+
+	pentagons.sort_custom(func(a: Tile, b: Tile) -> bool:
+		return a.get_sort_index() < b.get_sort_index()
+	)
+
+	var pick_count := mini(count, pentagons.size())
+	if pick_count <= 0:
+		return
+
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed
+
+	for i in pick_count:
+		var j := rng.randi_range(i, pentagons.size() - 1)
+		var tmp: Tile = pentagons[i]
+		pentagons[i] = pentagons[j]
+		pentagons[j] = tmp
+
+	for i in pick_count:
+		pentagons[i].set_terrain(Tile.Terrain.LAND)
+
+
 func _collect_corner_tiles(icosahedron_vertices: PackedVector3Array) -> Dictionary:
 	var vertex_map := _build_vertex_map()
 	var corner_tiles: Dictionary = {}
@@ -220,6 +250,8 @@ func _assign_tile_directions() -> void:
 		return a.get_sort_index() < b.get_sort_index()
 	)
 
+	_assign_land_pentagons(tiles, land_pentagon_count, direction_seed)
+
 	var corner_tiles := _collect_corner_tiles(_build_vertices(radius))
 	var wind := WindDirection.generate(tiles, corner_tiles, direction_seed)
 	var targets_map: Dictionary = wind["targets"]
@@ -243,6 +275,10 @@ func _assign_tile_directions() -> void:
 				tile.setup_directions(typed_targets, typed_sources)
 		else:
 			tile.clear_direction()
+
+	for tile in tiles:
+		if tile.direction_targets.is_empty():
+			tile.set_terrain(Tile.Terrain.LAND)
 
 	var wind_strand := get_node_or_null("WindStrand") as WindStrand
 	if wind_strand != null:
@@ -423,14 +459,6 @@ func _remove_stale_generated_children() -> void:
 		child.free()
 
 
-func _update_tile_base_colors() -> void:
-	if _facets_root == null:
-		return
-	for child in _facets_root.get_children():
-		if child is Tile:
-			(child as Tile).set_base_color(albedo_color)
-
-
 func _clear_facets() -> void:
 	if _facets_root == null:
 		return
@@ -443,7 +471,7 @@ func _add_tile(inset_corners: Array, pre_inset_corners: Array) -> Tile:
 	var tile: Tile = TILE_SCENE.instantiate()
 	tile.name = "Tile%d" % _next_tile_id
 	_next_tile_id += 1
-	tile.configure(inset_corners, pre_inset_corners, albedo_color)
+	tile.configure(inset_corners, pre_inset_corners)
 	_facets_root.add_child(tile)
 	_set_editor_owner(tile)
 	return tile

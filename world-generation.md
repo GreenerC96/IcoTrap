@@ -4,11 +4,15 @@ How wind is generated. The icosahedron, the tiles, and what wind is are defined 
 
 Generation is deterministic for a given seed, tile layout, and sort order.
 
+## Land before wind
+
+Before wind runs, `land_pentagon_count` pentagons (default 4) are chosen with `direction_seed` and marked land. Pentagons are collected in sort order; the same seed and count always pick the same set. Count 0 marks none. Count 12 marks every pentagon.
+
 ## Where wind starts
 
-Wind starts on every pentagon. Every vertex is a pentagon, so there are no corner-tile seeds. Seeds are handled in sort order. A seed that was already given wind is skipped.
+Wind starts only on land pentagons. Sea pentagons do not start wind. If `land_pentagon_count` is 0, there are no wind origins. Seeds are handled in sort order. A seed that was already given wind is skipped.
 
-**Pentagon.** Picks 1 or 2 different neighbours, with equal chance of either count. It may point at any of its five neighbours.
+**Land pentagon.** Picks 1 or 2 different neighbours, with equal chance of either count. It may point at any of its five neighbours.
 
 ## How a target is chosen
 
@@ -38,9 +42,13 @@ If that target is an **opposite** (a jump across a corner, not an edge neighbour
 - If the branch also jumps to an opposite, it can branch again the same way.
 - Branches are assigned before the next wave. If a wave is empty but a branch is still waiting, generation continues from that branch.
 
+## Land after wind
+
+When wind generation finishes, every tile with no wind out (no outgoing direction) becomes land. Tiles that already have wind keep their terrain: origin pentagons stay land, and reached sea tiles stay sea.
+
 ## What a tile sends
 
-- A pentagon seed sends to 1 or 2 neighbours.
+- A land pentagon seed sends to 1 or 2 neighbours.
 - Every other tile that receives wind sends to exactly 1 tile.
 - The extra branch from an opposite jump is a separate tile downstream, not a second target on the jumper.
 - Wind may merge into a tile that already has outgoing wind. It only points back at its own source when every other option is gone.

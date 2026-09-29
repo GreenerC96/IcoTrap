@@ -8,7 +8,7 @@ script = ExtResource("1_icosahedron")
 radius = 1.0
 frequency = 2
 gap = 0.08
-albedo_color = Color(0, 0.6862037, 0.8552197, 1)
+land_pentagon_count = 4
 
 [node name="WindStrand" type="Node3D" parent="."]
 script = ExtResource("2_wind_strand")

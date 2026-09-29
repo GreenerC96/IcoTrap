@@ -4,29 +4,31 @@ extends StaticBody3D
 const TRIANGLE_SCENE := preload("res://objects/triangle.tscn")
 
 const COLOR_HOVER := Color.WHITE
+const COLOR_SEA := Color(0.45, 0.62, 0.92)
+const COLOR_LAND := Color(0.35, 0.72, 0.38)
 
 const COLLISION_THICKNESS := 0.04
+
+enum Terrain { SEA, LAND }
 
 var neighbours: Array[Tile] = []
 var opposites: Array = []
 var direction_targets: Array[Tile] = []
 var wind_source_tiles: Array[Tile] = []
+var terrain: Terrain = Terrain.SEA
 
 var _mesh_instance: MeshInstance3D
 var _material: StandardMaterial3D
-var _base_color: Color = Color(0.45, 0.62, 0.92)
+var _base_color: Color = COLOR_SEA
 var _hovered: bool = false
 
 var _inset_corners: Array[Vector3] = []
 var _pre_inset_corners: Array[Vector3] = []
 
 
-func configure(
-	inset_corners: Array,
-	pre_inset_corners: Array,
-	base_color: Color
-) -> void:
-	_base_color = base_color
+func configure(inset_corners: Array, pre_inset_corners: Array) -> void:
+	terrain = Terrain.SEA
+	_base_color = COLOR_SEA
 	_inset_corners = _array_to_vector3(inset_corners)
 	_pre_inset_corners = _array_to_vector3(pre_inset_corners)
 
@@ -35,7 +37,7 @@ func configure(
 	_mesh_instance.mesh = _build_surface_mesh(_inset_corners)
 
 	_material = StandardMaterial3D.new()
-	_material.albedo_color = base_color
+	_material.albedo_color = _base_color
 	_material.metallic = 0.1
 	_material.roughness = 0.65
 	_mesh_instance.material_override = _material
@@ -54,6 +56,16 @@ func configure(
 
 func is_pentagon() -> bool:
 	return _pre_inset_corners.size() == 5
+
+
+func is_land() -> bool:
+	return terrain == Terrain.LAND
+
+
+func set_terrain(value: Terrain) -> void:
+	terrain = value
+	_base_color = COLOR_LAND if terrain == Terrain.LAND else COLOR_SEA
+	refresh_visual()
 
 
 func get_corner_count() -> int:
@@ -91,11 +103,6 @@ func setup_directions(target_tiles: Array[Tile], source_tiles: Array[Tile]) -> v
 func clear_direction() -> void:
 	direction_targets.clear()
 	wind_source_tiles.clear()
-
-
-func set_base_color(color: Color) -> void:
-	_base_color = color
-	refresh_visual()
 
 
 func refresh_visual() -> void:

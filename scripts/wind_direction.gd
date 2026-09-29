@@ -17,7 +17,7 @@ static func generate(
 	var seed_tiles: Array[Tile] = []
 
 	for tile in tiles:
-		if tile.is_pentagon() or corner_tiles.has(tile):
+		if tile.is_pentagon() and tile.is_land():
 			seed_tiles.append(tile)
 
 	seed_tiles.sort_custom(func(a: Tile, b: Tile) -> bool:

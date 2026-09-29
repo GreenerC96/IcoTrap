@@ -20,7 +20,14 @@ transform = Transform3D(0.866025, -0.433013, 0.25, 0, 0.866025, 0.5, -0.5, -0.43
 shadow_enabled = true
 
 [node name="World" parent="." unique_id=1754660743 groups=["orbit_focus"] instance=ExtResource("1_icosahedron")]
-frequency = 4
+frequency = 5
+
+[node name="WindStrand" parent="World" index="0" unique_id=1496643635]
+strand_speed = null
+tile_strand_cooldown_seconds = null
+wave_speed = 0.2
+ribbon_color = Color(0.85, 0.92, 1, 0.55)
+curve_samples_per_unit = null
 
 [node name="OrbitCamera" parent="." unique_id=516430546 instance=ExtResource("2_orbit_camera")]
 

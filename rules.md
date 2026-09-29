@@ -9,7 +9,8 @@ The world is a faceted icosahedron.
 - `frequency` (2–8) splits every face into a triangular grid. Points stay on the flat face. They are not pushed back onto a smooth sphere.
 - `gap` (0–0.4) pulls each tile’s corners in toward its own center, leaving a gap between tiles.
 - `radius` scales the whole shape.
-- `direction_seed` chooses how wind is generated. The same seed always rebuilds the same world.
+- `direction_seed` chooses how wind is generated and which pentagons become land before wind. The same seed always rebuilds the same world.
+- `land_pentagon_count` (0–12, default 4) is how many pentagons are marked land before wind. Changing it rebuilds the world.
 
 ## Tiles
 
@@ -19,8 +20,11 @@ Each tile stores:
 
 - **Neighbours** — one tile per edge. Two tiles are neighbours when they share an edge from before the gap inset.
 - **Opposites** — corner links. Only triangle tiles have them. A pentagon has none.
+- **Terrain** — sea or land. New tiles start as sea.
 - **Wind out** — the tile or tiles this tile sends wind to.
 - **Wind in** — the tiles that send wind to this tile.
+
+Sea tiles are blue. Land tiles are green. Hovering a tile turns it white.
 
 ### Neighbours
 
@@ -99,6 +103,3 @@ The mesh is a serpentine triangle strip (`wave_amplitude`, `wave_frequency`, `wa
 
 Overlapping bursts are allowed. A world rebuild clears active strands and refreshes which tiles can spawn from.
 
-## Hover
-
-Hovering a tile turns it white.
