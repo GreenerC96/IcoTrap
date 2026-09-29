@@ -68,6 +68,37 @@ Wind is a direction on each reached tile: usually one outgoing tile, sometimes t
 
 How wind is generated is defined in [world-generation.md](world-generation.md).
 
+Wind strands are a **visual only**. They read each tile’s wind out links and do not change generation, seeds, or tile data.
+
+### WindStrand node
+
+The World scene ([objects/icosahedron.tscn](objects/icosahedron.tscn)) has a child **WindStrand** node ([scripts/wind_strand.gd](scripts/wind_strand.gd)). Its exports are edited in the inspector (open that scene, or enable editable children on the World instance in Main). Strands spawn only while the game is running; the node does nothing in the editor except hold settings.
+
+### Bursts and origins
+
+On a timer (`interval_seconds`), the spawner picks several **origin** tiles that have at least one wind out target (`origins_per_burst`). Origins are chosen without replacement. Tiles that recently had a strand pass through them are deprioritized until `tile_strand_cooldown_seconds` has elapsed; if not enough “fresh” tiles exist, recently used ones are still picked. Cooldown memory is cleared when the world rebuilds. Burst randomness is independent of `direction_seed`.
+
+From each origin, one strand is started for **each** wind out target (a pentagon with two targets starts two strands). Each strand walks forward along wind out links for up to `hop_count` hops after the first target. If a tile sends wind to more than one tile, the walk **splits** into separate strand paths, each with its own remaining hop budget. A path stops when hops run out or a tile has no wind out.
+
+### Path shape
+
+Each strand follows a smooth 3D path built from the tile sequence:
+
+- **Control points** alternate lifted tile centroids and **bridges** between consecutive tiles. A bridge sits on the shared edge midpoint when the step is to a neighbour, or on the matching opposite corner on the source tile for an opposite jump, lifted along the blended outward normal of the two tiles. That keeps the path from cutting through tiles when crossing facets or pentagons.
+- The control polyline is smoothed with a **Catmull-Rom** spline, resampled at `curve_samples_per_unit` per world unit. The ribbon uses arc length along that curve.
+
+### Strand motion and look
+
+Each strand is a short ribbon (`strand_length` in world units) that moves at constant `strand_speed` along the path:
+
+1. **Extrude** — tail fixed at the origin; the head grows out to full length.
+2. **Slide** — the full-length window travels toward the end of the path.
+3. **Trail off** — head at the path end; the tail catches up until the strand is gone.
+
+The mesh is a serpentine triangle strip (`wave_amplitude`, `wave_frequency`, `wave_speed`), unshaded and alpha-blended. Along the visible piece, alpha fades from transparent at the tail to `ribbon_color` alpha at the head. Width and height above the surface use `ribbon_width` and `surface_lift`.
+
+Overlapping bursts are allowed. A world rebuild clears active strands and refreshes which tiles can spawn from.
+
 ## Hover
 
-Hovering a tile turns it white. Wind leaving a tile is drawn in black, from the tile center toward the target. Wind entering a tile is drawn in white, from the source to the center.
+Hovering a tile turns it white.

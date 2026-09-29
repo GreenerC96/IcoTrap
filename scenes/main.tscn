@@ -23,3 +23,5 @@ shadow_enabled = true
 frequency = 4
 
 [node name="OrbitCamera" parent="." unique_id=516430546 instance=ExtResource("2_orbit_camera")]
+
+[editable path="World"]

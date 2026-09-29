@@ -30,17 +30,6 @@ const VERTEX_SNAP_SCALE := 10000.0
 		direction_seed = value
 		_rebuild()
 
-@export var arrow_length: float = 0.12:
-	set(value):
-		arrow_length = max(value, 0.01)
-		_assign_tile_directions()
-
-@export var arrow_radius: float = 0.012:
-	set(value):
-		arrow_radius = max(value, 0.001)
-		_assign_tile_directions()
-
-
 var _facets_root: Node3D
 var _next_tile_id: int = 0
 
@@ -251,9 +240,13 @@ func _assign_tile_directions() -> void:
 					for source in sources_map[tile] as Array:
 						if source is Tile:
 							typed_sources.append(source as Tile)
-				tile.setup_directions(typed_targets, typed_sources, arrow_length, arrow_radius)
+				tile.setup_directions(typed_targets, typed_sources)
 		else:
 			tile.clear_direction()
+
+	var wind_strand := get_node_or_null("WindStrand") as WindStrand
+	if wind_strand != null:
+		wind_strand.refresh(tiles)
 
 
 func _replace_vertex_fans_with_pentagons(
@@ -423,6 +416,8 @@ func _remove_stale_generated_children() -> void:
 		if child == _facets_root:
 			continue
 		if child.name == "Facets":
+			continue
+		if child.name == "WindStrand":
 			continue
 		remove_child(child)
 		child.free()
