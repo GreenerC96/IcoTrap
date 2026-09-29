@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://cl08h2su6hkto"]
+
+[ext_resource type="PackedScene" uid="uid://bl5qu0xcdlhcy" path="res://objects/icosahedron.tscn" id="1_icosahedron"]
+[ext_resource type="PackedScene" uid="uid://c7qunc7rbohmm" path="res://scenes/orbit_camera.tscn" id="2_orbit_camera"]
+
+[sub_resource type="Environment" id="Environment_main"]
+background_mode = 1
+background_color = Color(0.12, 0.14, 0.18, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.55, 0.58, 0.65, 1)
+ambient_light_energy = 0.35
+
+[node name="Main" type="Node3D" unique_id=1947033915]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1356490590]
+environment = SubResource("Environment_main")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=526616034]
+transform = Transform3D(0.866025, -0.433013, 0.25, 0, 0.866025, 0.5, -0.5, -0.433013, 0.75, 0, 3, 2)
+shadow_enabled = true
+
+[node name="World" parent="." unique_id=1754660743 groups=["orbit_focus"] instance=ExtResource("1_icosahedron")]
+frequency = 4
+pentagon_vertex_count = 6
+
+[node name="OrbitCamera" parent="." unique_id=516430546 instance=ExtResource("2_orbit_camera")]

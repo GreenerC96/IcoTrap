@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3 uid="uid://bl5qu0xcdlhcy"]
+
+[ext_resource type="Script" path="res://objects/icosahedron.gd" id="1_icosahedron"]
+
+[node name="World" type="Node3D"]
+script = ExtResource("1_icosahedron")
+radius = 1.0
+frequency = 2
+gap = 0.08
+albedo_color = Color(0, 0.6862037, 0.8552197, 1)
+pole_marker_radius = 0.06
+north_pole_color = Color(1, 0.35, 0.35, 1)
+south_pole_color = Color(0.35, 0.85, 1, 1)

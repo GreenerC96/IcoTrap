@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://c7qunc7rbohmm"]
+
+[ext_resource type="Script" path="res://scripts/orbit_camera.gd" id="1_orbit"]
+
+[node name="OrbitCamera" type="Node3D"]
+script = ExtResource("1_orbit")
+orbit_distance = 4.0
+target_path = NodePath("../World")
+
+[node name="Camera3D" type="Camera3D" parent="."]

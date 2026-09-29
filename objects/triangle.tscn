@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://ctriangle3d001"]
+
+[ext_resource type="Script" path="res://objects/triangle.gd" id="1_triangle"]
+
+[node name="Triangle" type="MeshInstance3D"]
+script = ExtResource("1_triangle")

@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://ctile3d001"]
+
+[ext_resource type="Script" path="res://objects/tile.gd" id="1_tile"]
+
+[node name="Tile" type="StaticBody3D"]
+script = ExtResource("1_tile")
