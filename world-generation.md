@@ -6,11 +6,9 @@ Generation is deterministic for a given seed, tile layout, and sort order.
 
 ## Where wind starts
 
-Wind starts on every pentagon and every corner tile. Those seeds are handled in sort order. A seed that was already given wind is skipped.
+Wind starts on every pentagon. Every vertex is a pentagon, so there are no corner-tile seeds. Seeds are handled in sort order. A seed that was already given wind is skipped.
 
 **Pentagon.** Picks 1 or 2 different neighbours, with equal chance of either count. It may point at any of its five neighbours.
-
-**Corner triangle.** Picks exactly 1 neighbour. It may not point at another corner tile, so it only blows outward from the vertex, not around the ring of five.
 
 ## How a target is chosen
 

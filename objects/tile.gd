@@ -4,9 +4,6 @@ extends StaticBody3D
 const TRIANGLE_SCENE := preload("res://objects/triangle.tscn")
 
 const COLOR_HOVER := Color.WHITE
-const COLOR_NEIGHBOR := Color(0.25, 0.82, 0.38)
-const COLOR_OPPOSITE := Color(0.95, 0.88, 0.2)
-const COLOR_DIRECTION := Color(0.92, 0.22, 0.22)
 
 const COLLISION_THICKNESS := 0.04
 const ARROW_LIFT_RADIUS_FACTOR := 2.5
@@ -17,14 +14,10 @@ var opposites: Array = []
 var direction_targets: Array[Tile] = []
 var wind_source_tiles: Array[Tile] = []
 
-var _world: Node3D
 var _mesh_instance: MeshInstance3D
 var _material: StandardMaterial3D
 var _base_color: Color = Color(0.45, 0.62, 0.92)
 var _hovered: bool = false
-var _neighbor_highlighted: bool = false
-var _opposite_highlighted: bool = false
-var _direction_highlighted: bool = false
 
 var _inset_corners: Array[Vector3] = []
 var _pre_inset_corners: Array[Vector3] = []
@@ -35,10 +28,8 @@ var _wind_source_line: MeshInstance3D
 func configure(
 	inset_corners: Array,
 	pre_inset_corners: Array,
-	base_color: Color,
-	world: Node3D
+	base_color: Color
 ) -> void:
-	_world = world
 	_base_color = base_color
 	_inset_corners = _array_to_vector3(inset_corners)
 	_pre_inset_corners = _array_to_vector3(pre_inset_corners)
@@ -119,32 +110,11 @@ func set_base_color(color: Color) -> void:
 	refresh_visual()
 
 
-func set_neighbor_highlight(enabled: bool) -> void:
-	_neighbor_highlighted = enabled
-	refresh_visual()
-
-
-func set_opposite_highlight(enabled: bool) -> void:
-	_opposite_highlighted = enabled
-	refresh_visual()
-
-
-func set_direction_highlight(enabled: bool) -> void:
-	_direction_highlighted = enabled
-	refresh_visual()
-
-
 func refresh_visual() -> void:
 	if _material == null:
 		return
 	if _hovered:
 		_material.albedo_color = COLOR_HOVER
-	elif _direction_highlighted:
-		_material.albedo_color = COLOR_DIRECTION
-	elif _neighbor_highlighted:
-		_material.albedo_color = COLOR_NEIGHBOR
-	elif _opposite_highlighted:
-		_material.albedo_color = COLOR_OPPOSITE
 	else:
 		_material.albedo_color = _base_color
 
@@ -154,7 +124,6 @@ func _ready() -> void:
 		return
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
-	input_event.connect(_on_input_event)
 
 
 func _on_mouse_entered() -> void:
@@ -165,20 +134,6 @@ func _on_mouse_entered() -> void:
 func _on_mouse_exited() -> void:
 	_hovered = false
 	refresh_visual()
-
-
-func _on_input_event(
-	_camera: Node,
-	event: InputEvent,
-	_position: Vector3,
-	_normal: Vector3,
-	_shape_idx: int
-) -> void:
-	if event is InputEventMouseButton:
-		var mouse_button := event as InputEventMouseButton
-		if mouse_button.pressed and mouse_button.button_index == MOUSE_BUTTON_RIGHT:
-			if _world != null and _world.has_method("select_tile_neighbors"):
-				_world.select_tile_neighbors(self)
 
 
 func _rebuild_direction_lines(arrow_radius: float) -> void:

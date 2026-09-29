@@ -10,9 +10,9 @@ const VERTEX_SNAP_SCALE := 10000.0
 		radius = max(value, 0.001)
 		_rebuild()
 
-@export_range(1, 8, 1) var frequency: int = 1:
+@export_range(2, 8, 1) var frequency: int = 2:
 	set(value):
-		frequency = max(value, 1)
+		frequency = max(value, 2)
 		_rebuild()
 
 @export_range(0.0, 0.4, 0.01) var gap: float = 0.08:
@@ -24,27 +24,6 @@ const VERTEX_SNAP_SCALE := 10000.0
 	set(value):
 		albedo_color = value
 		_update_tile_base_colors()
-		_update_pole_markers()
-
-@export var pole_marker_radius: float = 0.06:
-	set(value):
-		pole_marker_radius = max(value, 0.005)
-		_update_pole_markers()
-
-@export var north_pole_color: Color = Color(1.0, 0.35, 0.35):
-	set(value):
-		north_pole_color = value
-		_update_pole_markers()
-
-@export var south_pole_color: Color = Color(0.35, 0.85, 1.0):
-	set(value):
-		south_pole_color = value
-		_update_pole_markers()
-
-@export_range(0, 12, 1) var pentagon_vertex_count: int = 0:
-	set(value):
-		pentagon_vertex_count = clampi(value, 0, 12)
-		_rebuild()
 
 @export var direction_seed: int = 1:
 	set(value):
@@ -63,10 +42,6 @@ const VERTEX_SNAP_SCALE := 10000.0
 
 
 var _facets_root: Node3D
-var _pole_markers_root: Node3D
-var _highlighted_neighbors: Array[Tile] = []
-var _highlighted_opposites: Array[Tile] = []
-var _highlighted_direction: Array[Tile] = []
 var _next_tile_id: int = 0
 
 
@@ -81,41 +56,10 @@ func _ready() -> void:
 	get_viewport().physics_object_picking = true
 
 
-func select_tile_neighbors(tile: Tile) -> void:
-	_clear_selection_highlights()
-	for neighbor in tile.neighbours:
-		neighbor.set_neighbor_highlight(true)
-		_highlighted_neighbors.append(neighbor)
-	for opposite in tile.opposites:
-		if opposite is Tile:
-			opposite.set_opposite_highlight(true)
-			_highlighted_opposites.append(opposite)
-	for target in tile.direction_targets:
-		if target != null and is_instance_valid(target):
-			target.set_direction_highlight(true)
-			_highlighted_direction.append(target)
-
-
-func _clear_selection_highlights() -> void:
-	for neighbor in _highlighted_neighbors:
-		if is_instance_valid(neighbor):
-			neighbor.set_neighbor_highlight(false)
-	_highlighted_neighbors.clear()
-	for opposite in _highlighted_opposites:
-		if is_instance_valid(opposite):
-			opposite.set_opposite_highlight(false)
-	_highlighted_opposites.clear()
-	for target in _highlighted_direction:
-		if is_instance_valid(target):
-			target.set_direction_highlight(false)
-	_highlighted_direction.clear()
-
-
 func _rebuild() -> void:
 	if not is_inside_tree():
 		return
 
-	_clear_selection_highlights()
 	_ensure_scene_roots()
 	_remove_stale_generated_children()
 	_clear_facets()
@@ -152,7 +96,6 @@ func _rebuild() -> void:
 	vertex_map = _build_vertex_map()
 	_link_tile_opposites(vertex_map)
 	_assign_tile_directions()
-	_update_pole_markers()
 
 
 func _register_tile_edges(
@@ -317,13 +260,12 @@ func _replace_vertex_fans_with_pentagons(
 	icosahedron_vertices: PackedVector3Array,
 	vertex_map: Dictionary
 ) -> void:
-	if pentagon_vertex_count <= 0 or _facets_root == null:
+	if _facets_root == null:
 		return
 
-	var chosen_vertices := _pick_pentagon_vertices(icosahedron_vertices)
 	var consumed: Dictionary = {}
 
-	for vertex in chosen_vertices:
+	for vertex in icosahedron_vertices:
 		var key := _vertex_key(vertex)
 		if not vertex_map.has(key):
 			continue
@@ -358,25 +300,6 @@ func _replace_vertex_fans_with_pentagons(
 			[inset[0], inset[1], inset[2], inset[3], inset[4]],
 			[loop[0], loop[1], loop[2], loop[3], loop[4]]
 		)
-
-
-func _pick_pentagon_vertices(icosahedron_vertices: PackedVector3Array) -> Array[Vector3]:
-	var rng := RandomNumberGenerator.new()
-	rng.seed = direction_seed
-	var indices: Array[int] = []
-	for i in icosahedron_vertices.size():
-		indices.append(i)
-	for i in indices.size() - 1:
-		var j := rng.randi_range(i, indices.size() - 1)
-		var tmp: int = indices[i]
-		indices[i] = indices[j]
-		indices[j] = tmp
-
-	var count := mini(pentagon_vertex_count, indices.size())
-	var result: Array[Vector3] = []
-	for i in count:
-		result.append(icosahedron_vertices[indices[i]])
-	return result
 
 
 func _build_pentagon_corner_loop(vertex: Vector3, fan_tiles: Array[Tile]) -> Array[Vector3]:
@@ -465,7 +388,6 @@ func _edge_key(p: Vector3, q: Vector3) -> String:
 
 func _ensure_scene_roots() -> void:
 	_facets_root = _get_or_create_child_node("Facets", _facets_root)
-	_pole_markers_root = _get_or_create_child_node("PoleMarkers", _pole_markers_root)
 
 
 func _get_or_create_child_node(node_name: String, cached: Node3D) -> Node3D:
@@ -492,15 +414,15 @@ func _set_editor_owner(node: Node) -> void:
 
 
 func _should_persist_editor_children() -> bool:
-	# Generated facets/markers are rebuilt from exports; never save them into .tscn files.
+	# Generated facets are rebuilt from exports; never save them into .tscn files.
 	return false
 
 
 func _remove_stale_generated_children() -> void:
 	for child in get_children():
-		if child == _facets_root or child == _pole_markers_root:
+		if child == _facets_root:
 			continue
-		if child.name == "Facets" or child.name == "PoleMarkers":
+		if child.name == "Facets":
 			continue
 		remove_child(child)
 		child.free()
@@ -526,47 +448,10 @@ func _add_tile(inset_corners: Array, pre_inset_corners: Array) -> Tile:
 	var tile: Tile = TILE_SCENE.instantiate()
 	tile.name = "Tile%d" % _next_tile_id
 	_next_tile_id += 1
-	tile.configure(inset_corners, pre_inset_corners, albedo_color, self)
+	tile.configure(inset_corners, pre_inset_corners, albedo_color)
 	_facets_root.add_child(tile)
 	_set_editor_owner(tile)
 	return tile
-
-
-func _update_pole_markers() -> void:
-	if not is_inside_tree():
-		return
-
-	_ensure_scene_roots()
-	_clear_pole_markers()
-
-	_add_pole_marker("NorthPole", Vector3(0.0, radius, 0.0), north_pole_color)
-	_add_pole_marker("SouthPole", Vector3(0.0, -radius, 0.0), south_pole_color)
-
-
-func _clear_pole_markers() -> void:
-	if _pole_markers_root == null:
-		return
-	for child in _pole_markers_root.get_children():
-		_pole_markers_root.remove_child(child)
-		child.free()
-
-
-func _add_pole_marker(marker_name: String, position: Vector3, color: Color) -> void:
-	var marker := MeshInstance3D.new()
-	marker.name = marker_name
-	marker.position = position
-	marker.mesh = SphereMesh.new()
-	(marker.mesh as SphereMesh).radius = pole_marker_radius
-	(marker.mesh as SphereMesh).height = pole_marker_radius * 2.0
-
-	var material := StandardMaterial3D.new()
-	material.albedo_color = color
-	material.metallic = 0.05
-	material.roughness = 0.4
-	marker.material_override = material
-
-	_pole_markers_root.add_child(marker)
-	_set_editor_owner(marker)
 
 
 func _get_pole_alignment_basis() -> Basis:

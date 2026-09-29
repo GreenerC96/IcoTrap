@@ -21,6 +21,5 @@ shadow_enabled = true
 
 [node name="World" parent="." unique_id=1754660743 groups=["orbit_focus"] instance=ExtResource("1_icosahedron")]
 frequency = 4
-pentagon_vertex_count = 6
 
 [node name="OrbitCamera" parent="." unique_id=516430546 instance=ExtResource("2_orbit_camera")]

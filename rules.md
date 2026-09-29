@@ -6,11 +6,10 @@ The world is a faceted icosahedron.
 
 - It has 12 vertices and 20 triangular faces.
 - One vertex is the north pole (`+Y`). The opposite vertex is the south pole (`-Y`).
-- North is marked red. South is marked cyan.
-- `frequency` (1–8) splits every face into a triangular grid. Points stay on the flat face. They are not pushed back onto a smooth sphere.
+- `frequency` (2–8) splits every face into a triangular grid. Points stay on the flat face. They are not pushed back onto a smooth sphere.
 - `gap` (0–0.4) pulls each tile’s corners in toward its own center, leaving a gap between tiles.
 - `radius` scales the whole shape.
-- `direction_seed` chooses both which vertices become pentagons and how wind is generated. The same seed always rebuilds the same world.
+- `direction_seed` chooses how wind is generated. The same seed always rebuilds the same world.
 
 ## Tiles
 
@@ -51,14 +50,13 @@ The default tile. Each small triangle from the face subdivision is a triangle ti
 
 - 3 corners, 3 neighbours, 3 opposite slots.
 - An opposite slot stays empty when that corner has no valid opposite.
-- A triangle that still touches an original icosahedron vertex is a **corner tile**. Corner tiles are the five triangles around a vertex that was not turned into a pentagon.
+- A triangle that still touches an original icosahedron vertex is a **corner tile**. Corner tiles are the five triangles around a vertex that was not turned into a pentagon. Every vertex is a pentagon, so the world has no corner tiles.
 
 #### Pentagon
 
 A pentagon replaces the five triangles around an original icosahedron vertex.
 
-- `pentagon_vertex_count` (0–12) is how many of the 12 vertices are replaced.
-- Which vertices are chosen is a shuffle driven by `direction_seed`.
+- All 12 vertices are replaced.
 - The five triangles are removed. Their outer edges become the pentagon’s five corners.
 - The pentagon is wound so its face points outward.
 - It has 5 neighbours and no opposites.
@@ -70,12 +68,6 @@ Wind is a direction on each reached tile: usually one outgoing tile, sometimes t
 
 How wind is generated is defined in [world-generation.md](world-generation.md).
 
-## Selection colors
-
-Right-clicking a tile shows its links:
-
-- neighbours in green,
-- opposites in yellow,
-- wind targets in red.
+## Hover
 
 Hovering a tile turns it white. Wind leaving a tile is drawn in black, from the tile center toward the target. Wind entering a tile is drawn in white, from the source to the center.
